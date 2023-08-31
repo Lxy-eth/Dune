@@ -1,0 +1,138 @@
+select 
+    "from"
+    ,"to"
+    ,"value"
+from erc20_ethereum.evt_Transfer
+where "to" = 0xBaF6dC2E647aeb6F510f9e318856A1BCd66C5e19
+
+
+select 
+    count("to") as data
+    ,count(distinct "to") as data_count_v2
+    ,sum("value") as data_sum
+    ,max("value") as data_max
+    ,min("value") as data_min
+    ,avg("value") as data_avg
+from erc20_ethereum.evt_Transfer
+where "from" = 0xb1a2b43a7433dd150bb82227ed519cd6b142d382
+and "contract_address" = 0x5ca9a71b1d01849c0a95490cc00559717fcf0d1d
+
+分组聚合
+select 
+    "to"
+    ,sum("value") as value_aount
+from erc20_ethereum.evt_Transfer
+where "from" = 0xb1a2b43a7433dd150bb82227ed519cd6b142d382
+and "contract_address" = 0x5ca9a71b1d01849c0a95490cc00559717fcf0d1d
+group by "to"
+
+实战
+转出
+select
+    cate
+    ,wallet_address
+    ,eth_transfered
+from 
+(
+    select
+        '转出' as cate
+      ,replace(cast(to_wallet as varchar),'\','0') as wallet_address
+      ,sum(eth_transfered) as eth_transfered
+    from 
+    (
+        SELECT 
+           
+          block_time
+          , value/power(10,18) as eth_transfered
+          , tx_hash
+          ,"to" as to_wallet
+        FROM ethereum."traces"
+        WHERE "from" = CONCAT('\x',right('{{A.address:}}',40))::bytea
+        AND (LOWER(call_type) NOT IN ('delegatecall', 'callcode', 'staticcall') or call_type is null)
+        AND  CASE  WHEN block_number < 4370000  THEN True WHEN block_number >= 4370000 THEN tx_success END  
+        AND success = true
+    ) a 
+    group by  2
+     --转入  
+    union all
+    
+    select
+      '转入' as cate
+      ,replace(cast(from_wallet as varchar),'\','0') as wallet_address
+      ,sum(eth_transfered) as eth_transfered
+    from 
+    (
+        SELECT 
+           
+          block_time
+          , value/power(10,18) as eth_transfered
+          , tx_hash
+          ,"from" as from_wallet
+        FROM ethereum."traces"
+        WHERE "to" = CONCAT('\x',RIGHT('{{A.address:}}',40))::bytea
+        AND (LOWER(call_type) NOT IN ('delegatecall', 'callcode', 'staticcall') or call_type is null)
+        AND  CASE  WHEN block_number < 4370000  THEN True WHEN block_number >= 4370000 THEN tx_success END  
+        AND success = true
+    ) a 
+    group by  2
+) trans_info 
+left outer join 
+(
+    select
+        upper("address") as address
+        ,address_label
+    from dune_user_generated.pro_0xBi_address_label_dim
+    where cate in ('Token合约','Exchange地址','未知合约','Black Hole','项目智能合约','项目WrappedToken','跨链桥')
+)label_info
+on label_info.address = upper(trans_info.wallet_address)
+where label_info.address is null and eth_transfered >10
+order by eth_transfered desc
+
+select blockchain, contract_address, decimals, symbol   -- 逐个指定需要返回的列
+from tokens.erc20
+where blockchain = 'ethereum'
+    and symbol like 'E%'  -- 代币符号以字母E开头
+order by decimals desc,symbol asc -- 先按代币支持的小数位数降序排列，再按代币符号升序排列
+
+
+As定义别名. as 可以省略
+select t.contract_address  "代币合约地址",
+    t.decimals  "代币小数",
+    t.symbol  "代币符号"
+from tokens.erc20  t
+limit 10
+
+使用distinct可以筛选出字段的唯一值
+select distinct blockchain
+from tokens.erc20
+now()可以获得当前系统的日期时间值。我们还可以使用current_date来得到当前系统日期
+select now()  ,current_date
+
+date_trunc('day', block_time)将block_time的值转换为以“天”表示的日期值
+
+select 
+ date_trunc('day',now())as today
+ ,date_trunc('month',now()) as current_month
+ ,date_trunc('year',now()) as current_year
+
+nterval获取时间间隔
+
+select now() as right_now,
+    (now() - interval '2' hour) as two_hours_ago,
+    (now() - interval '2' day) as two_days_ago,
+    (current_date - interval '1' year) as one_year_ago
+
+Concat 连接字符串
+select concat('Hello','world!') as hello_world,
+    'Hello' || ' ' || 'world'|| '!' as hello_world_again
+
+Cast转换字段数据类型，data_type 'value string'操作符方式完成类型转换
+select (cast(21 as varchar) || 'users') as User_count
+    ,integer '123' as intval,
+    timestamp '2023-08-31 16:00' as dt_time
+
+Power求幂
+select 1.23 * power(10,18) as raw_aomunt,
+     1230000000000000000 / pow(10, 18) as original_amount,
+     7890000 / 1e6 as usd_amount
+
