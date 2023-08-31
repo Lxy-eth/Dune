@@ -95,14 +95,14 @@ where blockchain = 'ethereum'
 order by decimals desc,symbol asc -- 先按代币支持的小数位数降序排列，再按代币符号升序排列
 
 
-As定义别名. as 可以省略
+--As定义别名. as 可以省略
 select t.contract_address  "代币合约地址",
     t.decimals  "代币小数",
     t.symbol  "代币符号"
 from tokens.erc20  t
 limit 10
 
-使用distinct可以筛选出字段的唯一值
+--使用distinct可以筛选出字段的唯一值
 select distinct blockchain
 from tokens.erc20
 now()可以获得当前系统的日期时间值。我们还可以使用current_date来得到当前系统日期
@@ -115,7 +115,7 @@ select
  ,date_trunc('month',now()) as current_month
  ,date_trunc('year',now()) as current_year
 
-nterval获取时间间隔
+--nterval获取时间间隔
 
 select now() as right_now,
     (now() - interval '2' hour) as two_hours_ago,
@@ -126,12 +126,12 @@ Concat 连接字符串
 select concat('Hello','world!') as hello_world,
     'Hello' || ' ' || 'world'|| '!' as hello_world_again
 
-Cast转换字段数据类型，data_type 'value string'操作符方式完成类型转换
+---Cast转换字段数据类型，data_type 'value string'操作符方式完成类型转换
 select (cast(21 as varchar) || 'users') as User_count
     ,integer '123' as intval,
     timestamp '2023-08-31 16:00' as dt_time
 
-Power求幂
+--Power求幂
 select 1.23 * power(10,18) as raw_aomunt,
      1230000000000000000 / pow(10, 18) as original_amount,
      7890000 / 1e6 as usd_amount

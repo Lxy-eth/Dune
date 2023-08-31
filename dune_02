@@ -1,0 +1,112 @@
+-- select blockchain, contract_address, decimals, symbol
+-- from tokens.erc20
+-- where blockchain = 'ethereum'   -- 返回以太坊区块链的ERC20代币信息
+--     and symbol like 'E%'    -- 代币符号以字母E开头
+-- order by decimals desc, symbol asc  -- 先按代币支持的小数位数降序排列，再按代币符号升序排列
+
+
+-- 定义别名时，as 关键词可以省略
+-- select t.contract_address "代币合约地址",
+--     t.decimals "代币小数位数",
+--     t.symbol "代币符号"
+-- from tokens.erc20 t
+-- limit 10
+
+-- select distinct blockchain
+-- from tokens.erc20
+
+-- select now(),current_date
+-- select now(),
+--     date_trunc('day', now()) day,
+--     date_trunc('month', now()) current_month
+-- Interval获取时间间隔
+
+-- select now() as time,
+--     (now() - interval '2' hour) as two_hour_ago,
+--     (now() - interval '2' day) as two_day_ago,
+--     (current_date - interval '2' year) as two_year_ago
+
+
+-- Concat连接字符串
+
+-- select concat('hello','world'),
+--     'hello' || 'world' || '!' new
+
+-- Cast转换字段数据类型
+-- 还可以使用data_type 'value string'操作符方式完成类型转换
+-- select (cast(25 as varchar) || 'nonce') user,
+--     integer '133' nonce,
+--     timestamp '2023-04-28 20:00:00' date_
+
+-- Power求幂
+-- select 12.3 * power(10,18) raw_amount,
+--     1230000000000000000 / pow(10,18) original_amount,
+--     7890000 / 1e6 usd
+
+-- Group By分组与常用汇总函数
+-- select blockchain,count(*) as token_aount
+-- from tokens.erc20
+-- group by blockchain
+
+-- select count(*) as blockchain_count,
+--     sum(token_count) as total_token_count,
+--     avg(token_count) as average_token_count,
+--     min(token_count) as min_token_count,
+--     max(token_count) as max_token_count
+-- from (
+--     select blockchain,count(*) as token_count
+--     from tokens.erc20
+--     group by blockchain
+--     )
+
+-- 多表关联（Join)
+
+-- select a.symbol,
+--     a.decimals,
+--     a.blockchain as blockchain_a,
+--     a.contract_address as contract_address_a,
+--     b.blockchain as blockchain_b,
+--     b.contract_address as contract_address_b
+-- from tokens.erc20 a
+-- inner join tokens.erc20 b on a.symbol = b.symbol
+-- where a.blockchain = 'ethereum'
+--     and b.blockchain = 'bnb'
+-- limit 100
+
+-- 集合
+-- select contract_address,symbol,decimals
+-- from tokens.erc20
+-- where blockchain = 'ethereum'
+-- union all
+
+-- select contract_address,symbol,decimals
+-- from tokens.erc20
+-- where blockchain = 'bnb'
+
+-- limit 100
+
+-- case语句
+
+-- select (case when decimals >= 10 then 'high precision'
+--             when decimals >= 5 then 'Middle precision'
+--             when decimals >= 1 then 'Low precision'
+--             else 'no precision'
+--             end) precision_type,
+--         count(*) as token_count
+-- from tokens.erc20
+-- group by 1
+-- order by token_count desc
+
+-- CTE公共表表达式
+-- with blockchain_token_count as (
+--     select blockchain,count (*) as token_count
+--     from tokens.erc20
+--     group by blockchain
+-- )
+-- select count(*) as blockchain_count,
+--     sum(token_count) as total_count,
+--     avg(token_count) as average_token_count,
+--     min(token_count) as min_token_count,
+--     max(token_count) as maxtoken_count
+-- from blockchain_token_count
+    
