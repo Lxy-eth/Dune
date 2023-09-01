@@ -1,0 +1,9 @@
+select protocols,
+    sum(gross_profit_usd - miner_payment_usd) as mev_pure_profit_usd
+from flashbots.mev_summary
+where error is null 
+    and type = 'arbitrage'
+    and miner_payment_usd <= 1e19
+    and abs(gross_profit_usd) <= 1e9
+group by 1
+order by 2 desc
